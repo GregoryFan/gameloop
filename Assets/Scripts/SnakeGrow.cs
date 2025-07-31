@@ -4,15 +4,15 @@ using UnityEngine;
 public class SnakeGrow : MonoBehaviour
 {
     //Saves Position For Body
-    [SerializeField] List<SnakeHistoryEntry> history = new List<SnakeHistoryEntry>();
+    [SerializeField] public List<SnakeHistoryEntry> history = new List<SnakeHistoryEntry>();
 
     //Gap Between Each Body Part
-    [SerializeField] float gap = 0.5f;
+    [SerializeField] public float gap = 0.5f;
     //Total Size
     [SerializeField] float size = 3f;
     //Min Distance For Position Update
     [SerializeField] float minDist = 0.05f;
-    [SerializeField] float sampleInterval = 0.02f;
+    [SerializeField] public float sampleInterval = 0.02f;
     float timeSinceLastSample = 0f;
     public int segmentCount;
 
@@ -20,7 +20,7 @@ public class SnakeGrow : MonoBehaviour
     [Header("Body Parts")]
     [SerializeField] GameObject snakeParent;
     [SerializeField] GameObject bodySegmentPrefab;
-    [SerializeField] List<Transform> bodyParts = new List<Transform>();
+    [SerializeField] public List<Transform> bodyParts = new List<Transform>();
 
     [SerializeField] GameObject tail;
     [SerializeField] bool nearTail;
@@ -28,9 +28,10 @@ public class SnakeGrow : MonoBehaviour
 
     [SerializeField] int minLoopSize = 17; // Min size to maintain loop
     [SerializeField] int shrinkRate = 1; // Units per second to shrink
-    float shrinkTimer = 0f;
 
     float shrinkingLength = 3f;
+
+    public bool shrinkActive;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -58,9 +59,11 @@ public class SnakeGrow : MonoBehaviour
         if (attached)
         {
             // Smoothly decrease the snake's length
+            if(shrinkActive)
+            {
             shrinkingLength -= shrinkRate * Time.deltaTime;
-            size = shrinkingLength; // Keep the main 'size' variable in sync
-
+            size = shrinkingLength; 
+            }
             // If the loop gets too small, detach
             if (shrinkingLength < minLoopSize)
             {
@@ -90,20 +93,6 @@ public class SnakeGrow : MonoBehaviour
         }
     }
 
-    public void Shrink(int amount)
-    {
-        int targetCount = Mathf.FloorToInt(size - amount / gap);
-        size -= amount;
-        
-        while (bodyParts.Count > targetCount && bodyParts.Count > 1)
-        {
-            int indexToRemove = bodyParts.Count - 2; // Second last
-            Transform segment = bodyParts[indexToRemove];
-            bodyParts.RemoveAt(indexToRemove);
-            Destroy(segment.gameObject);
-        }
-    }
-
     void UpdatePositionHistory()
     {
         timeSinceLastSample += Time.deltaTime;
@@ -118,7 +107,7 @@ public class SnakeGrow : MonoBehaviour
         float totalTrailTime = bodyParts.Count * gap / 5; // speed in units/sec
         int maxHistory = Mathf.CeilToInt(totalTrailTime / sampleInterval);
 
-        if (history.Count > maxHistory + 20)
+        if (history.Count > maxHistory + 1000)
         {
             history.RemoveAt(0);
         }
@@ -181,7 +170,7 @@ public class SnakeGrow : MonoBehaviour
     }
 }
 
-    void AttachTail()
+    public void AttachTail()
     {
         attached = true;
         // Set the shrinking length to the current body length
@@ -189,12 +178,13 @@ public class SnakeGrow : MonoBehaviour
         GetComponent<SnakePlayerFollow>().enabled = false;
     }
 
-    void DetachTail()
+    public void DetachTail()
     {
         attached = false;
         // After detaching, update the size to match the remaining segments
         size = (bodyParts.Count - 1) * gap;
         GetComponent<SnakePlayerFollow>().enabled = true;
+        if (!shrinkActive) shrinkActive = true;
     }
 
     SnakeHistoryEntry GetInterpolatedHistoryEntry(float floatIndex)
