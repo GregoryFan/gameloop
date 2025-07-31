@@ -29,7 +29,7 @@ public class SnakePlayerFollow : MonoBehaviour
 
         // Rotate toward the mouse
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        Quaternion targetRotation = Quaternion.Euler(0, 0, angle);
+        Quaternion targetRotation = Quaternion.Euler(0f, 0f, angle);
         transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotSpeed * Time.deltaTime);
     }
 }
