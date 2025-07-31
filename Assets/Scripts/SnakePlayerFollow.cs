@@ -4,13 +4,17 @@ public class SnakePlayerFollow : MonoBehaviour
 {
     [SerializeField] SnakeGrow growScript;
     [SerializeField] float speed;
+    [SerializeField] float rageMult = 2;
     [SerializeField] float rotSpeed;
     [SerializeField] float rotating;
+    [SerializeField] float desiredMouseOffset = 2f;
 
     [SerializeField] float prefillRadius = 2f;
     [SerializeField] int prefillRotations = 2;
 
     Camera mainCamera;
+
+    Vector3 debugTargetPos;
 
     void Start()
     {
@@ -27,30 +31,40 @@ public class SnakePlayerFollow : MonoBehaviour
 
     void FollowPlayer()
     {
+        float eSpeed = speed;
+        float eRotSpeed = rotSpeed;
+        if (growScript.raging)
+        {
+            eSpeed *= rageMult;
+            eRotSpeed *= rageMult;
+        }
+
         // Get mouse position in world space
         Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
         mouseWorldPos.z = 0f;
 
-        // Calculate direction
-        Vector3 direction = (mouseWorldPos - transform.position).normalized;
+        // Direction from snake to mouse
+        Vector3 rawDirection = mouseWorldPos - transform.position;
+        Vector3 direction = rawDirection.normalized;
 
-        // Move forward depending on rotation
+        // Create a fake "target" point in that direction, offset away from the mouse
+        Vector3 targetPos = mouseWorldPos - direction * desiredMouseOffset;
+        debugTargetPos = targetPos;
+
+        // Compute direction toward that target point
+        Vector3 toTarget = (targetPos - transform.position).normalized;
+
+        // Move forward in current facing direction
         float currentAngle = transform.eulerAngles.z * Mathf.Deg2Rad;
-        Vector3 dir = new Vector3(Mathf.Cos(currentAngle), Mathf.Sin(currentAngle));
-        transform.position += speed * Time.deltaTime * dir;
+        Vector3 forward = new Vector3(Mathf.Cos(currentAngle), Mathf.Sin(currentAngle));
+        transform.position += eSpeed * Time.deltaTime * forward;
 
-
-        // Rotate toward the mouse
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        // Rotate toward target point (not directly to mouse)
+        float angle = Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
         Quaternion targetRotation = Quaternion.Euler(0f, 0f, angle);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotSpeed * Time.deltaTime);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, eRotSpeed * Time.deltaTime);
     }
 
-    void RotateAroundCenter()
-    {
-
-    }
-    
     void PrefillHistoryWithCircularMotion()
     {
         Vector3 center = transform.position;
@@ -78,4 +92,12 @@ public class SnakePlayerFollow : MonoBehaviour
         transform.position = latest.position;
         transform.rotation = latest.rotation;
     }
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawSphere(debugTargetPos, 2f); // Adjust size if needed
+    }
 }
+
+

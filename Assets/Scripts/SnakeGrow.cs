@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class SnakeGrow : MonoBehaviour
 {
+    [SerializeField] GameObject meta;
     //Saves Position For Body
     [SerializeField] public List<SnakeHistoryEntry> history = new List<SnakeHistoryEntry>();
 
@@ -15,6 +16,7 @@ public class SnakeGrow : MonoBehaviour
     [SerializeField] public float sampleInterval = 0.02f;
     float timeSinceLastSample = 0f;
     public int segmentCount;
+    [SerializeField] public  bool raging;
 
 
     [Header("Body Parts")]
@@ -37,6 +39,7 @@ public class SnakeGrow : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        meta = GameObject.FindGameObjectWithTag("Meta");
         segmentCount = Mathf.FloorToInt(size / gap);
         Grow(0);
     }
@@ -54,6 +57,7 @@ public class SnakeGrow : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Space))
         {
             if (attached) DetachTail();
+            
         }
 
         if (attached)
@@ -174,8 +178,10 @@ public class SnakeGrow : MonoBehaviour
     {
         attached = true;
         // Set the shrinking length to the current body length
-        shrinkingLength = (bodyParts.Count - 1) * gap; 
+        shrinkingLength = (bodyParts.Count - 1) * gap;
         GetComponent<SnakePlayerFollow>().enabled = false;
+        meta.GetComponent<GameStateHandler>().NormalCamera();
+        raging = false;
     }
 
     public void DetachTail()
@@ -185,6 +191,19 @@ public class SnakeGrow : MonoBehaviour
         size = (bodyParts.Count - 1) * gap;
         GetComponent<SnakePlayerFollow>().enabled = true;
         if (!shrinkActive) shrinkActive = true;
+
+        //Start the Game if not
+        if (meta)
+        {
+            GameStateHandler gameStateHandler = meta.GetComponent<GameStateHandler>();
+            if (!gameStateHandler.gameStarted)
+            {
+                gameStateHandler.gameStarted = true;
+                gameStateHandler.AttachCamera(this.gameObject);
+            }
+            gameStateHandler.RageBiteCamera();
+            raging = true;
+        }
     }
 
     SnakeHistoryEntry GetInterpolatedHistoryEntry(float floatIndex)
