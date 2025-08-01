@@ -12,7 +12,7 @@ public class GameStateHandler : MonoBehaviour
     [SerializeField] float transitionDuration = 0.5f;
 
     public bool gameStarted;
-     CinemachineCamera vcam;
+    CinemachineCamera vcam;
     Coroutine currentTransition;
     
 

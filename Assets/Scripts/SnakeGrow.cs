@@ -31,7 +31,7 @@ public class SnakeGrow : MonoBehaviour
     [SerializeField] int minLoopSize = 17; // Min size to maintain loop
     [SerializeField] int shrinkRate = 1; // Units per second to shrink
 
-    float shrinkingLength = 3f;
+    [SerializeField] float shrinkingLength = 3f;
 
     public bool shrinkActive;
 
@@ -41,7 +41,6 @@ public class SnakeGrow : MonoBehaviour
     {
         meta = GameObject.FindGameObjectWithTag("Meta");
         segmentCount = Mathf.FloorToInt(size / gap);
-        Grow(0);
     }
 
     // Update is called once per frame
@@ -52,7 +51,11 @@ public class SnakeGrow : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (!attached && nearTail) AttachTail();
+            if (!attached && nearTail)
+            {
+                AttachTail();
+                //meta.GetComponent<GameStateHandler>().NormalCamera();
+            }
         }
         if (Input.GetKeyUp(KeyCode.Space))
         {
@@ -180,7 +183,6 @@ public class SnakeGrow : MonoBehaviour
         // Set the shrinking length to the current body length
         shrinkingLength = (bodyParts.Count - 1) * gap;
         GetComponent<SnakePlayerFollow>().enabled = false;
-        meta.GetComponent<GameStateHandler>().NormalCamera();
         raging = false;
     }
 
@@ -190,7 +192,7 @@ public class SnakeGrow : MonoBehaviour
         // After detaching, update the size to match the remaining segments
         size = (bodyParts.Count - 1) * gap;
         GetComponent<SnakePlayerFollow>().enabled = true;
-        if (!shrinkActive) shrinkActive = true;
+        //if (!shrinkActive) shrinkActive = true;
 
         //Start the Game if not
         if (meta)
@@ -201,8 +203,8 @@ public class SnakeGrow : MonoBehaviour
                 gameStateHandler.gameStarted = true;
                 gameStateHandler.AttachCamera(this.gameObject);
             }
-            gameStateHandler.RageBiteCamera();
-            raging = true;
+            //gameStateHandler.RageBiteCamera();
+            //raging = true;
         }
     }
 

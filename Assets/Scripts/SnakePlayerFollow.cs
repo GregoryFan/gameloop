@@ -21,6 +21,7 @@ public class SnakePlayerFollow : MonoBehaviour
         mainCamera = Camera.main;
         growScript = GetComponent<SnakeGrow>();
         PrefillHistoryWithCircularMotion();
+        growScript.Grow(0);
         growScript.AttachTail();
     }
 
